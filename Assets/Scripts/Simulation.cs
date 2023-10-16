@@ -40,6 +40,10 @@ public class Simulation : MonoBehaviour
         else
         {
             // without animation simulation game will just switch tiles without animation and will show how much time it took to simulate N moves
+            
+            // but honestly it is kinda useless. Because it woking using only 1 thread and it's not really fast. (it might be multithreaded)
+            // the game not really optimized for this kind of simulation. // I didn't get the point of this task. so decided to do add 2 ways of simulation.
+            
             Point randomPoint = new Point();
             gameGenerator.SetShouldPlayAnimation(false);
 
