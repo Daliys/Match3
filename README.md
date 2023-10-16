@@ -6,6 +6,8 @@ While the core functionality is in place, I acknowledge that the design,
 animation, and overall aesthetic of the elements can be improved.
 Unfortunately, I do not have access to a designer at the moment.
 
+# Unity Version 2022.3.8f1
+
 # Features
 
 - Match three or more similar elements.
