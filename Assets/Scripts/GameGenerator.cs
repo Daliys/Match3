@@ -16,10 +16,11 @@ public class GameGenerator : MonoBehaviour
     public static event Action OnAvailableForNextMove;
 
     // references to the game objects
-    [SerializeField] private GameObject gameField;
+    [SerializeField] private GameObject gamePrefabsParent;
     [SerializeField] private GameObject fieldTilePrefab1;
     [SerializeField] private GameObject fieldTilePrefab2;
     [SerializeField] private AvailableColorsSO availableColorsSo;
+    [SerializeField] private GoalTracker goalTracker;
 
     private Point _gridSize;
     private float _fieldTileSize;
@@ -33,6 +34,7 @@ public class GameGenerator : MonoBehaviour
 
     // cashing the matched points (for optimization)
     private readonly List<Point> _matchedPoints = new();
+    private readonly Dictionary<TileType,int> _matchedTiles = new();
 
     private void Awake()
     {
@@ -51,9 +53,10 @@ public class GameGenerator : MonoBehaviour
         _tilesArray = new Tile[gridSize.x, gridSize.y];
         _fieldLogic = new FieldLogic(gridSize, numOfColors);
 
-        GenerateGameField();
         _fieldLogic.GenerateInitialField();
-        ApplyColorToObjects();
+        GenerateGameField();
+       
+        //ApplyColorToObjects();
 
         OnAvailableForNextMove?.Invoke();
     }
@@ -106,6 +109,7 @@ public class GameGenerator : MonoBehaviour
 
         // look for the combination 
         _matchedPoints.Clear();
+        _matchedTiles.Clear();
         AddPointsToMatchedPoints(_fieldLogic.CheckForCombination(firstPoint));
         AddPointsToMatchedPoints(_fieldLogic.CheckForCombination(secondPoint));
 
@@ -138,7 +142,19 @@ public class GameGenerator : MonoBehaviour
         {
             leftPositionsToFall = Mathf.Min(leftPositionsToFall, matchedPoint.x);
             rightPositionsToFall = Mathf.Max(rightPositionsToFall, matchedPoint.x);
-            _fieldLogic.SetColor(matchedPoint, 0);
+
+            // cash the matched tiles (for optimization)
+            TileType tileType = (TileType)_fieldLogic.GetGem(matchedPoint);
+            if (_matchedTiles.TryGetValue(tileType, out int count))
+            {
+                _matchedTiles[tileType] = count + 1;
+            }
+            else
+            {
+                _matchedTiles[tileType] = 1;
+            }
+
+            _fieldLogic.SetGem(matchedPoint, 0);
         }
 
         // we using 2 different methods for optimization (one for animation and one without animation)
@@ -164,7 +180,7 @@ public class GameGenerator : MonoBehaviour
             int fallDistance = 0;
             for (int y = 0; y < _gridSize.y; y++)
             {
-                if (_fieldLogic.GetColor(x, y) == 0)
+                if (_fieldLogic.GetGem(x, y) == 0)
                 {
                     fallDistance++;
                 }
@@ -178,7 +194,7 @@ public class GameGenerator : MonoBehaviour
             for (int j = 0; j < fallDistance; j++)
             {
                 Point point = new Point(x, _gridSize.y - 1 - j);
-                _fieldLogic.GenerateColorForTile(point);
+                _fieldLogic.GenerateGemForTile(point);
             }
         }
 
@@ -217,8 +233,10 @@ public class GameGenerator : MonoBehaviour
             {
                 Point point = new Point(i, _gridSize.y - 1 - j);
 
-                _fieldLogic.GenerateColorForTile(point);
-                Tile tile = GenerateTile(new Point(i, _gridSize.y + fallDistance - j - 1));
+                TileType tileType = (TileType)_fieldLogic.GenerateGemForTile(point);
+                Point newTilePoint = new Point(i, _gridSize.y + fallDistance - j - 1);
+                Tile tile = GenerateTile(newTilePoint, tileType);
+
                 tile.SetPoint(point);
                 _tilesArray[point.x, point.y] = tile;
 
@@ -240,17 +258,21 @@ public class GameGenerator : MonoBehaviour
             tileSetForDestroy.Add(_tilesArray[matchedPoint.x, matchedPoint.y]);
         }
 
+        foreach (var tile in _matchedTiles)
+        {
+            goalTracker.OnGemsCollected(tile.Key, tile.Value);
+        }
+
         tileSetForDestroy.PlayDestroyAnimation(() =>
         {
             foreach (var point in _matchedPoints)
-            {
+            { 
                 ObjectPooling.Instance.ReturnToPool(_tilesArray[point.x, point.y].gameObject);
                 _tilesArray[point.x, point.y] = null;
             }
 
             callback?.Invoke();
         });
-
     }
 
     /// <summary>
@@ -259,6 +281,7 @@ public class GameGenerator : MonoBehaviour
     private void CheckFullFieldForMatch()
     {
         _matchedPoints.Clear();
+        _matchedTiles.Clear();
         for (int i = 0; i < _gridSize.x; i++)
         {
             for (int j = 0; j < _gridSize.y; j++)
@@ -284,9 +307,9 @@ public class GameGenerator : MonoBehaviour
     ///  Generate new tile in the empty position.
     /// </summary>
     /// <param name="point"> Point of the tile that should be generated</param>
-    private Tile GenerateTile(Point point)
+    private Tile GenerateTile(Point point, TileType tileType )
     {
-        GameObject tile = ObjectPooling.Instance.GetObject(TileType.Simple);
+        GameObject tile = ObjectPooling.Instance.GetObject(tileType);
 
         tile.transform.position = new Vector2(-_gameBorder.x + _fieldTileSize / 2 + point.x * _fieldTileSize,
             -_gameBorder.y + _fieldTileSize / 2 + point.y * _fieldTileSize);
@@ -330,13 +353,13 @@ public class GameGenerator : MonoBehaviour
         {
             for (int j = 0; j < _gridSize.y; j++)
             {
-                GameObject fieldTile = Instantiate(GetFieldTilePrefab(i, j), gameField.transform);
-                GameObject tile = ObjectPooling.Instance.GetObject(TileType.Simple);
+                GameObject fieldTile = Instantiate(GetFieldTilePrefab(i, j), gamePrefabsParent.transform);
+                TileType tileType = (TileType)_fieldLogic.GetGem(new Point(i, j));
+                GameObject tile = ObjectPooling.Instance.GetObject(tileType);
+                tile.transform.SetParent(gamePrefabsParent.transform);
 
-                fieldTile.transform.position = tile.transform.position =
-                    new Vector2(startX + i * _fieldTileSize, startY + j * _fieldTileSize);
-                fieldTile.transform.localScale =
-                    tile.transform.localScale = new Vector2(_fieldTileSize, _fieldTileSize);
+                fieldTile.transform.position = tile.transform.position =  new Vector2(startX + i * _fieldTileSize, startY + j * _fieldTileSize);
+                fieldTile.transform.localScale = tile.transform.localScale = new Vector2(_fieldTileSize, _fieldTileSize);
 
                 _tilesArray[i, j] = tile.GetComponent<Tile>();
                 _tilesArray[i, j].SetPoint(new Point(i, j));
@@ -385,8 +408,8 @@ public class GameGenerator : MonoBehaviour
 
     private void ApplyColorForObject(Point point)
     {
-        _tilesArray[point.x, point.y]
-            .ChangeColor(availableColorsSo.colors[_fieldLogic.GetColor(new Point(point.x, point.y)) - 1]);
+        // _tilesArray[point.x, point.y]
+        //     .ChangeColor(availableColorsSo.colors[_fieldLogic.GetGem(new Point(point.x, point.y)) - 1]);
     }
 
     /// <summary>

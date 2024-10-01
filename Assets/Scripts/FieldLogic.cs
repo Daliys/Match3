@@ -6,24 +6,24 @@ using UnityEngine;
 /// </summary>
 public class FieldLogic
 {
-    private readonly int[,] _colorsArray;
-    private readonly int[] _cashedColors;
+    private readonly int[,] _gemsArray;
+    private readonly int[] _cashedGems;
 
     // cashing the colors to pick up for the tile (for optimization)
-    private readonly List<int> _availableColorsToPickUp = new List<int>();
-    private readonly int _numOfColors;
+    private readonly List<int> _availableGemsToPickUp = new List<int>();
+    private readonly int _numOfGems;
     private readonly Point _gridSize;
 
-    public FieldLogic(Point gridSize, int numOfColors)
+    public FieldLogic(Point gridSize, int numOfDifferentGems)
     {
         _gridSize = gridSize;
-        _numOfColors = numOfColors;
-        _colorsArray = new int[_gridSize.x, _gridSize.y];
-        _cashedColors = new int[_numOfColors];
+        _numOfGems = numOfDifferentGems;
+        _gemsArray = new int[_gridSize.x, _gridSize.y];
+        _cashedGems = new int[_numOfGems];
 
-        for (int i = 0; i < _numOfColors; i++)
+        for (int i = 0; i < _numOfGems; i++)
         {
-            _cashedColors[i] = i + 1;
+            _cashedGems[i] = i + 1;
         }
     }
 
@@ -31,46 +31,46 @@ public class FieldLogic
     ///  Generate the color for the tile. It's used to determine the colors of the tiles.
     /// </summary>
     /// <param name="point"> Point of the tile</param>
-    private int GenerateUnmatchableColorForTile(Point point)
+    private int GenerateUnmatchableGemsForTile(Point point)
     {
-        _availableColorsToPickUp.Clear();
-        _availableColorsToPickUp.AddRange(_cashedColors);
+        _availableGemsToPickUp.Clear();
+        _availableGemsToPickUp.AddRange(_cashedGems);
 
 
-        if (CheckIfTileIsSameColor(point.Up(), point.Down()))
+        if (CheckIfTileIsSameGem(point.Up(), point.Down()))
         {
-            _availableColorsToPickUp.Remove(_colorsArray[point.Up().x, point.Up().y]);
+            _availableGemsToPickUp.Remove(_gemsArray[point.Up().x, point.Up().y]);
         }
 
-        if (CheckIfTileIsSameColor(point.Right(), point.Left()))
+        if (CheckIfTileIsSameGem(point.Right(), point.Left()))
         {
-            _availableColorsToPickUp.Remove(_colorsArray[point.Right().x, point.Right().y]);
+            _availableGemsToPickUp.Remove(_gemsArray[point.Right().x, point.Right().y]);
         }
 
-        if (CheckIfTileIsSameColor(point.Up(), point.DUp()))
+        if (CheckIfTileIsSameGem(point.Up(), point.DUp()))
         {
-            _availableColorsToPickUp.Remove(_colorsArray[point.Up().x, point.Up().y]);
+            _availableGemsToPickUp.Remove(_gemsArray[point.Up().x, point.Up().y]);
         }
 
-        if (CheckIfTileIsSameColor(point.Right(), point.DRight()))
+        if (CheckIfTileIsSameGem(point.Right(), point.DRight()))
         {
-            _availableColorsToPickUp.Remove(_colorsArray[point.Right().x, point.Right().y]);
+            _availableGemsToPickUp.Remove(_gemsArray[point.Right().x, point.Right().y]);
         }
 
-        if (CheckIfTileIsSameColor(point.Down(), point.DDown()))
+        if (CheckIfTileIsSameGem(point.Down(), point.DDown()))
         {
-            _availableColorsToPickUp.Remove(_colorsArray[point.Down().x, point.Down().y]);
+            _availableGemsToPickUp.Remove(_gemsArray[point.Down().x, point.Down().y]);
         }
 
-        if (CheckIfTileIsSameColor(point.Left(), point.DLeft()))
+        if (CheckIfTileIsSameGem(point.Left(), point.DLeft()))
         {
-            _availableColorsToPickUp.Remove(_colorsArray[point.Left().x, point.Left().y]);
+            _availableGemsToPickUp.Remove(_gemsArray[point.Left().x, point.Left().y]);
         }
 
         // if there is no available color to pick up, return random color
-        return _availableColorsToPickUp.Count == 0
-            ? Random.Range(1, _numOfColors + 1)
-            : _availableColorsToPickUp[Random.Range(0, _availableColorsToPickUp.Count)];
+        return _availableGemsToPickUp.Count == 0
+            ? Random.Range(1, _numOfGems + 1)
+            : _availableGemsToPickUp[Random.Range(0, _availableGemsToPickUp.Count)];
     }
 
 
@@ -79,8 +79,8 @@ public class FieldLogic
     /// </summary>
     public void SwitchColors(Point first, Point second)
     {
-        (_colorsArray[first.x, first.y], _colorsArray[second.x, second.y]) =
-            (_colorsArray[second.x, second.y], _colorsArray[first.x, first.y]);
+        (_gemsArray[first.x, first.y], _gemsArray[second.x, second.y]) =
+            (_gemsArray[second.x, second.y], _gemsArray[first.x, first.y]);
     }
 
 
@@ -138,6 +138,7 @@ public class FieldLogic
 
         return returnList;
     }
+    
 
     private void CheckForPattern(List<Point> up, List<Point> down, List<Point> left, List<Point> right,
         List<Point> returnList)
@@ -222,12 +223,12 @@ public class FieldLogic
     /// <summary>
     /// Check if 2 tiles have the same color
     /// </summary>
-    private bool CheckIfTileIsSameColor(Point point1, Point point2)
+    private bool CheckIfTileIsSameGem(Point point1, Point point2)
     {
         if (!CheckIfTileIsInBounds(point1) || !CheckIfTileIsInBounds(point2)) return false;
 
-        return _colorsArray[point1.x, point1.y] != 0 &&
-               _colorsArray[point1.x, point1.y] == _colorsArray[point2.x, point2.y];
+        return _gemsArray[point1.x, point1.y] != 0 &&
+               _gemsArray[point1.x, point1.y] == _gemsArray[point2.x, point2.y];
     }
 
     /// <summary>
@@ -247,10 +248,10 @@ public class FieldLogic
     /// <param name="pointsThatMatch"> List of the tiles that should be destroyed</param>
     private void CheckDirection(Point origin, Point firstPoint, Point secondPoint, ref List<Point> pointsThatMatch)
     {
-        if (CheckIfTileIsSameColor(origin, firstPoint))
+        if (CheckIfTileIsSameGem(origin, firstPoint))
         {
             pointsThatMatch.Add(firstPoint);
-            if (CheckIfTileIsSameColor(origin, secondPoint))
+            if (CheckIfTileIsSameGem(origin, secondPoint))
             {
                 pointsThatMatch.Add(secondPoint);
             }
@@ -260,9 +261,10 @@ public class FieldLogic
     /// <summary>
     ///  Generate the color for the tile. It's used to determine the colors of the tiles.
     /// </summary>
-    public void GenerateColorForTile(Point point)
+    public int GenerateGemForTile(Point point)
     {
-        _colorsArray[point.x, point.y] = GenerateUnmatchableColorForTile(point);
+        _gemsArray[point.x, point.y] = GenerateUnmatchableGemsForTile(point);
+        return _gemsArray[point.x, point.y];
     }
 
     /// <summary>
@@ -274,23 +276,23 @@ public class FieldLogic
         {
             for (int y = 0; y < _gridSize.y; y++)
             {
-                GenerateColorForTile(new Point(x, y));
+                GenerateGemForTile(new Point(x, y));
             }
         }
     }
 
-    public int GetColor(Point point)
+    public int GetGem(Point point)
     {
-        return _colorsArray[point.x, point.y];
+        return _gemsArray[point.x, point.y];
     }
 
-    public int GetColor(int x, int y)
+    public int GetGem(int x, int y)
     {
-        return _colorsArray[x, y];
+        return _gemsArray[x, y];
     }
 
-    public void SetColor(Point point, int color)
+    public void SetGem(Point point, int gem)
     {
-        _colorsArray[point.x, point.y] = color;
+        _gemsArray[point.x, point.y] = gem;
     }
 }

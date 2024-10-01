@@ -13,5 +13,19 @@ MonoBehaviour:
   m_Name: ObjectPoolingPrefabsSO
   m_EditorClassIdentifier: 
   tilesHolder:
-  - prefab: {fileID: 336342728464311530, guid: f883a9db7bd354e4f85d2d8103b992b4, type: 3}
+  - prefab: {fileID: 8734340294515523223, guid: 4cad42a40f82d4bbaa4fed15d09655a0, type: 3}
     type: 0
+  - prefab: {fileID: 4750982691084667579, guid: 7e47d86e6720d489f95dcd6f737e75ae, type: 3}
+    type: 1
+  - prefab: {fileID: 822850215377879630, guid: a67d204c214d2465195cb64810fcfa51, type: 3}
+    type: 2
+  - prefab: {fileID: 8558593410851814569, guid: 2770c4f6f0ce64444b4f51f9bd13e26e, type: 3}
+    type: 3
+  - prefab: {fileID: 204980576156697595, guid: 35d415d9e40ad4170a1962c07dfbf865, type: 3}
+    type: 4
+  - prefab: {fileID: 6814892777753305230, guid: 2bd41553a387445bd9c1bc2477ef34dc, type: 3}
+    type: 5
+  - prefab: {fileID: 7144499352744475760, guid: f77b53f34e50f4e71994f518e48ca5fc, type: 3}
+    type: 6
+  - prefab: {fileID: 2311997383124821037, guid: ed68319f853234c688933aba703d6e69, type: 3}
+    type: 7

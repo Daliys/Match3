@@ -7,7 +7,6 @@ using UnityEngine;
 /// </summary>
 public class Tile : MonoBehaviour
 {
-    [SerializeField] private SpriteRenderer renderer;
     [SerializeField] private TimeForAnimations timeForAnimations;
     
      private Point _point;
@@ -17,11 +16,6 @@ public class Tile : MonoBehaviour
          _point = point;
      }
     
-    public void ChangeColor(Color color)
-    {
-        renderer.color = color;
-    }
-
 
     public void PlaySwitchAnimation(Vector2 moveTo, int timeMultiplier = 1, TweenCallback onComplete = null)
     {
@@ -42,6 +36,7 @@ public class Tile : MonoBehaviour
             .SetEase(Ease.Linear)
             .onComplete += onComplete;
     }
+
     
     public float GetDistanceToCompleteSwitch()
     {

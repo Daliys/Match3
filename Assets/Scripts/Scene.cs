@@ -14,7 +14,7 @@ public class Scene : MonoBehaviour
 
         // Calculate aspect ratio for the game border. (we can use any resolution)
         float aspectRatioX = (float)Screen.width / (float)Screen.height;
-        _gameBorder = new Vector2(cameraSize * aspectRatioX, cameraSize);
+        _gameBorder = new Vector2(cameraSize * 0.8f * aspectRatioX, cameraSize * 0.8f);
     }
 
 

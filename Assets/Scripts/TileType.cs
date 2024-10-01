@@ -3,5 +3,12 @@
 /// </summary>
 public enum TileType
 {
-    Simple,
+    CircleYellow,
+    StarBlue,
+    TriangleMix,
+    SquareYellow,
+    StarYellow,
+    SquareMix,
+    HexagonGreen,
+    CircleRed
 }

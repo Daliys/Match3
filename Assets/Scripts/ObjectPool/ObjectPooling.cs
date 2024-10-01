@@ -87,8 +87,8 @@ namespace ObjectPool
 
             switch (type)
             {
-                case PoolObjectTileComponent animal:
-                    _tilePool[animal.type].Enqueue(obj);
+                case PoolObjectTileComponent tile:
+                    _tilePool[tile.type].Enqueue(obj);
                     break;
             }
 

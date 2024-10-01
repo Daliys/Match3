@@ -39,6 +39,7 @@ public class PlayerInput : MonoBehaviour
 
         if (Input.GetMouseButtonDown(0))
         {
+            Debug.Log("Mouse Down");
             Vector2 mousePosition = _camera.ScreenToWorldPoint(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(mousePosition, Vector2.zero);
 
@@ -56,6 +57,7 @@ public class PlayerInput : MonoBehaviour
 
         else if (Input.GetMouseButtonUp(0))
         {
+            Debug.Log("Mouse Up");
             if (_selectedTile == null) return;
 
 
